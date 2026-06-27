@@ -1,0 +1,9 @@
+#report word or libreoffice file
+*.odt
+*.docs
+
+#project doc
+minimax.pdf
+
+#images
+/img
