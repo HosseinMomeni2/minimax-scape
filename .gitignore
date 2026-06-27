@@ -1,4 +1,4 @@
-#report word or libreoffice file
+#microsoft word or libreoffice file
 *.odt
 *.docs
 

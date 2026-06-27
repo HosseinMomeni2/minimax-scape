@@ -15,7 +15,7 @@ The game-rule helpers are already provided:
 """
 # TODO: write your own 10-digit numeric student code here.
 # Example: STUDENT_ID = "4021234567"
-STUDENT_ID = "0000000000"
+STUDENT_ID = "4023613071"
 
 from math import inf
 
@@ -50,10 +50,33 @@ def evaluate(state):
     return float(-6.0 * d_exit + 4.0 * d_monster + 2.0 * routes)
 
 
-def minimax(state, depth, maximizing_player, stats=None):
+def minimax(state, depth: int, maximizing_player: bool, stats=None):
     """Depth-limited Minimax from the Player's perspective."""
     # TODO: implement minimax.
-    raise NotImplementedError("Implement minimax(state, depth, maximizing_player, stats=None)")
+    # CAUTION: people at work.
+
+    ### base case
+    if(is_terminal(state) or depth==0):
+        return evaluate(state)
+    
+
+    ###maximizing player:
+    if maximizing_player:
+        max_val = -inf
+        moves = get_possible_moves(state, AGENT_PLAYER)
+        for move in moves:
+            new_state = apply_move(state, move, AGENT_PLAYER)
+            max_val = max(minimax(new_state, depth-1, not maximizing_player, stats), max_val)
+        return max_val
+    
+    ###minimizing player:
+    else:
+        min_val = inf
+        moves = get_possible_moves(state, AGENT_MONSTER)
+        for move in moves:
+            new_state = apply_move(state, move, AGENT_MONSTER)
+            min_val = min(minimax(new_state, depth-1, not maximizing_player, stats), min_val)
+        return min_val
 
 
 def alpha_beta(state, depth, alpha, beta, maximizing_player, stats=None):
@@ -74,6 +97,12 @@ def choose_player_move(state, depth, use_alpha_beta=True):
         "principal_variation": []
     }
     """
+    otp = {"best_move": "",
+           "scores": {},
+           "states_explored": 0,
+           "pruned_branches": 0,
+           "principal_variation": []}
+
     moves = get_possible_moves(state, AGENT_PLAYER)
     if not moves:
         return {
@@ -85,4 +114,17 @@ def choose_player_move(state, depth, use_alpha_beta=True):
         }
 
     # TODO: call alpha_beta or minimax for each candidate move and return best.
-    raise NotImplementedError("Implement choose_player_move(state, depth, use_alpha_beta=True)")
+    best_move = moves[0]
+    best_val = -inf
+    for move in moves:
+        new_state = apply_move(state, move, AGENT_PLAYER)
+        new_val = minimax(new_state, depth, False)
+
+        otp['scores'][move] = new_val
+
+        if new_val > best_val:
+            best_val = new_val
+            best_move = move
+
+    otp["best_move"] = best_move
+    return otp
