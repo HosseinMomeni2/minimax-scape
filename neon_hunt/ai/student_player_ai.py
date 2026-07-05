@@ -191,7 +191,7 @@ def choose_player_move(state, depth, use_alpha_beta=True):
     best_val = -inf
     best_move = moves[0]
     best_stats = {}
-    principle_variation = list()
+    principal_variation = list()
     
     for move in moves:
         new_state = apply_move(state, move, AGENT_PLAYER)
@@ -206,13 +206,13 @@ def choose_player_move(state, depth, use_alpha_beta=True):
             best_val = new_val
             best_move = move
             best_stats = new_stats
-            principle_variation = new_variation
+            principal_variation = new_variation
         
         otp["scores"][move] = new_val
 
     otp["best_move"] = best_move
     otp["states_explored"] = best_stats.get("states_explored", 0)
     otp["pruned_branches"] = best_stats.get("pruned_branches", 0)
-    otp["principal_variation"] = principle_variation
+    otp["principal_variation"] = principal_variation
 
     return otp
