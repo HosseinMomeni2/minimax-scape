@@ -16,6 +16,7 @@ The game-rule helpers are already provided:
 # TODO: write your own 10-digit numeric student code here.
 # Example: STUDENT_ID = "4021234567"
 STUDENT_ID = "4023613071"
+STUDENT_ID = "4023613074"
 
 from math import inf
 
@@ -82,7 +83,61 @@ def minimax(state, depth: int, maximizing_player: bool, stats=None):
 def alpha_beta(state, depth, alpha, beta, maximizing_player, stats=None):
     """Minimax with alpha-beta pruning from the Player's perspective."""
     # TODO: implement alpha-beta pruning.
-    raise NotImplementedError("Implement alpha_beta(state, depth, alpha, beta, maximizing_player, stats=None)")
+    
+    ### base case
+    if (is_terminal(state) or depth == 0):
+        return evaluate(state)
+    
+    if stats is None:
+        stats = {}
+    
+    ### maximizing player:
+    if maximizing_player:
+        m_cnt = 0
+        max_val = -inf
+        best_move = None
+        moves = get_possible_moves(state, AGENT_PLAYER)
+        
+        for move in moves:
+            stats["states_explored"] = stats.get("states_explored", 0) + 1
+            m_cnt += 1
+            
+            new_state = apply_move(state, move, AGENT_PLAYER)
+            new_value, new_move = alpha_beta(new_state, depth-1, alpha, beta, not maximizing_player, stats)
+            
+            if new_value > max_val:
+                max_val, best_move = new_value, new_move
+                alpha = max(alpha, max_val)
+            
+            if max_val >= beta:
+                stats["pruned_branches"] = stats.get("pruned_branches", 0) + len(moves) - m_cnt
+                return max_val, best_move
+        
+        return max_val, best_move
+    
+    ### minimizing player:
+    else:
+        m_cnt = 0
+        min_val = inf
+        best_move = None
+        moves = get_possible_moves(state, AGENT_MONSTER)
+
+        for move in moves:
+            stats["states_explored"] = stats.get("states_explored", 0) + 1
+            m_cnt += 1
+            
+            new_state = apply_move(state, move, AGENT_MONSTER)
+            new_value, new_move = alpha_beta(new_state, depth-1, alpha, beta, not maximizing_player, stats)
+
+            if new_value < min_val:
+                min_val, best_move = new_value, new_move
+                beta = min(beta, min_val)
+            
+            if min_val <= beta:
+                stats["pruned_branches"] = stats.get("pruned_branches", 0) + len(moves) - m_cnt
+                return min_val, best_move
+        
+        return min_val, best_move
 
 
 def choose_player_move(state, depth, use_alpha_beta=True):
