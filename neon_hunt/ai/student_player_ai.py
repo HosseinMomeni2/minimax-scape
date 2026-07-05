@@ -204,9 +204,9 @@ def choose_player_move(state, depth, use_alpha_beta=True):
         new_stats = {}
 
         if use_alpha_beta:
-            new_val, new_move = alpha_beta(new_state, depth, -inf, inf, True, new_stats)
+            new_val, new_variation = alpha_beta(new_state, depth, -inf, inf, True, new_stats)
         else:
-            new_val, new_variation = minimax(new_state, depth, False, new_stats)
+            new_val, new_variation = minimax(new_state, depth, True, new_stats)
 
         if new_val > best_val:
             best_val = new_val
