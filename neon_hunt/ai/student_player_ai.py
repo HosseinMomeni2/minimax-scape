@@ -77,6 +77,7 @@ def minimax(state, depth: int, maximizing_player: bool, stats=None):
             if new_value > max_val:
                 max_val, best_move = new_value, new_move
         
+        stats["principal_variation"] = best_move
         return max_val, best_move
     
     ### minimizing player:
@@ -94,6 +95,7 @@ def minimax(state, depth: int, maximizing_player: bool, stats=None):
             if new_value < min_val:
                 min_val, best_move = new_value, new_move
         
+        stats["principal_variation"] = best_move
         return min_val, best_move
 
 
@@ -128,8 +130,10 @@ def alpha_beta(state, depth, alpha, beta, maximizing_player, stats=None):
             
             if max_val >= beta:
                 stats["pruned_branches"] = stats.get("pruned_branches", 0) + len(moves) - m_cnt
+                stats["principal_variation"] = best_move
                 return max_val, best_move
         
+        stats["principal_variation"] = best_move
         return max_val, best_move
     
     ### minimizing player:
@@ -150,10 +154,12 @@ def alpha_beta(state, depth, alpha, beta, maximizing_player, stats=None):
                 min_val, best_move = new_value, new_move
                 beta = min(beta, min_val)
             
-            if min_val <= beta:
+            if min_val <= alpha:
                 stats["pruned_branches"] = stats.get("pruned_branches", 0) + len(moves) - m_cnt
+                stats["principal_variation"] = best_move
                 return min_val, best_move
         
+        stats["principal_variation"] = best_move
         return min_val, best_move
 
 
@@ -169,7 +175,7 @@ def choose_player_move(state, depth, use_alpha_beta=True):
         "principal_variation": []
     }
     """
-    otp = {"best_move": "",
+    otp = {"best_move": None,
            "scores": {},
            "states_explored": 0,
            "pruned_branches": 0,
@@ -177,26 +183,32 @@ def choose_player_move(state, depth, use_alpha_beta=True):
 
     moves = get_possible_moves(state, AGENT_PLAYER)
     if not moves:
-        return {
-            "best_move": None,
-            "scores": {},
-            "states_explored": 0,
-            "pruned_branches": 0,
-            "principal_variation": [],
-        }
+        return otp
 
     # TODO: call alpha_beta or minimax for each candidate move and return best.
-    best_move = moves[0]
     best_val = -inf
+    best_move = moves[0]
+    best_stats = None
+    
     for move in moves:
         new_state = apply_move(state, move, AGENT_PLAYER)
-        new_val = minimax(new_state, depth, False)
+        new_stats = None
 
-        otp['scores'][move] = new_val
+        if use_alpha_beta:
+            new_val, new_move = alpha_beta(new_state, depth, -inf, inf, True, new_stats)
+        else:
+            new_val, new_move = minimax(new_state, depth, True, new_stats)
 
         if new_val > best_val:
             best_val = new_val
-            best_move = move
+            best_move = new_move
+            best_stats = new_stats
+        
+        otp["scores"][move] = new_val
 
     otp["best_move"] = best_move
+    otp["states_explored"] = best_stats["states_explored"]
+    otp["pruned_branches"] = best_stats["pruned_branches"]
+    otp["principal_variation"] = best_stats["principal_variation"]
+
     return otp
