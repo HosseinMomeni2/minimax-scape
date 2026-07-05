@@ -39,9 +39,9 @@ def evaluate(state):
     """
     result = is_terminal(state)
     if result == "PLAYER_WIN":
-        return 100000.0
+        return inf
     if result == "MONSTER_WIN":
-        return -100000.0
+        return -inf
 
     d_exit = bfs_distance(state, state.player, state.exit)
     d_monster = bfs_distance(state, state.player, state.monster)
@@ -57,7 +57,7 @@ def minimax(state, depth: int, maximizing_player: bool, stats=None):
 
     ### base case
     if (is_terminal(state) or depth == 0):
-        return evaluate(state)
+        return evaluate(state), list()
     
     if stats is None:
         stats = {}
@@ -65,38 +65,40 @@ def minimax(state, depth: int, maximizing_player: bool, stats=None):
     ### maximizing player:
     if maximizing_player:
         max_val = -inf
-        best_move = None
+        best_move = "UP"
+        best_variation = list()
         moves = get_possible_moves(state, AGENT_PLAYER)
         
         for move in moves:
             stats["states_explored"] = stats.get("states_explored", 0) + 1
 
             new_state = apply_move(state, move, AGENT_PLAYER)
-            new_value, new_move = minimax(new_state, depth-1, not maximizing_player, stats)
+            new_value, new_variation = minimax(new_state, depth-1, not maximizing_player, stats)
 
             if new_value > max_val:
-                max_val, best_move = new_value, new_move
+                max_val, best_variation, best_move = new_value, new_variation, move
         
-        stats["principal_variation"] = best_move
-        return max_val, best_move
+        best_variation.append(best_move)
+        return max_val, best_variation
     
     ### minimizing player:
     else:
         min_val = inf
-        best_move = None
+        best_move = "UP"
+        best_variation = list()
         moves = get_possible_moves(state, AGENT_MONSTER)
         
         for move in moves:
             stats["states_explored"] = stats.get("states_explored", 0) + 1
 
             new_state = apply_move(state, move, AGENT_MONSTER)
-            new_value, new_move = minimax(new_state, depth-1, not maximizing_player, stats)
+            new_value, new_variation = minimax(new_state, depth-1, not maximizing_player, stats)
 
             if new_value < min_val:
-                min_val, best_move = new_value, new_move
+                min_val, best_variation, best_move = new_value, new_variation, move
         
-        stats["principal_variation"] = best_move
-        return min_val, best_move
+        best_variation.append(best_move)
+        return min_val, best_variation
 
 
 def alpha_beta(state, depth, alpha, beta, maximizing_player, stats=None):
@@ -188,27 +190,29 @@ def choose_player_move(state, depth, use_alpha_beta=True):
     # TODO: call alpha_beta or minimax for each candidate move and return best.
     best_val = -inf
     best_move = moves[0]
-    best_stats = None
+    best_stats = {}
+    principle_variation = list()
     
     for move in moves:
         new_state = apply_move(state, move, AGENT_PLAYER)
-        new_stats = None
+        new_stats = {}
 
         if use_alpha_beta:
             new_val, new_move = alpha_beta(new_state, depth, -inf, inf, True, new_stats)
         else:
-            new_val, new_move = minimax(new_state, depth, True, new_stats)
+            new_val, new_variation = minimax(new_state, depth, False, new_stats)
 
         if new_val > best_val:
             best_val = new_val
-            best_move = new_move
+            best_move = move
             best_stats = new_stats
+            principle_variation = new_variation
         
         otp["scores"][move] = new_val
 
     otp["best_move"] = best_move
-    otp["states_explored"] = best_stats["states_explored"]
-    otp["pruned_branches"] = best_stats["pruned_branches"]
-    otp["principal_variation"] = best_stats["principal_variation"]
+    otp["states_explored"] = best_stats.get("states_explored", 0)
+    otp["pruned_branches"] = best_stats.get("pruned_branches", 0)
+    otp["principal_variation"] = principle_variation
 
     return otp
