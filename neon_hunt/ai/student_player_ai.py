@@ -54,30 +54,47 @@ def evaluate(state):
 def minimax(state, depth: int, maximizing_player: bool, stats=None):
     """Depth-limited Minimax from the Player's perspective."""
     # TODO: implement minimax.
-    # CAUTION: people at work.
 
     ### base case
-    if(is_terminal(state) or depth==0):
+    if (is_terminal(state) or depth == 0):
         return evaluate(state)
     
+    if stats is None:
+        stats = {}
 
-    ###maximizing player:
+    ### maximizing player:
     if maximizing_player:
         max_val = -inf
+        best_move = None
         moves = get_possible_moves(state, AGENT_PLAYER)
+        
         for move in moves:
+            stats["states_explored"] = stats.get("states_explored", 0) + 1
+
             new_state = apply_move(state, move, AGENT_PLAYER)
-            max_val = max(minimax(new_state, depth-1, not maximizing_player, stats), max_val)
-        return max_val
+            new_value, new_move = minimax(new_state, depth-1, not maximizing_player, stats)
+
+            if new_value > max_val:
+                max_val, best_move = new_value, new_move
+        
+        return max_val, best_move
     
-    ###minimizing player:
+    ### minimizing player:
     else:
         min_val = inf
+        best_move = None
         moves = get_possible_moves(state, AGENT_MONSTER)
+        
         for move in moves:
+            stats["states_explored"] = stats.get("states_explored", 0) + 1
+
             new_state = apply_move(state, move, AGENT_MONSTER)
-            min_val = min(minimax(new_state, depth-1, not maximizing_player, stats), min_val)
-        return min_val
+            new_value, new_move = minimax(new_state, depth-1, not maximizing_player, stats)
+
+            if new_value < min_val:
+                min_val, best_move = new_value, new_move
+        
+        return min_val, best_move
 
 
 def alpha_beta(state, depth, alpha, beta, maximizing_player, stats=None):
