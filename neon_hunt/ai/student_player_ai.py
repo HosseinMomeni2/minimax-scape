@@ -117,6 +117,7 @@ def alpha_beta(state, depth, alpha, beta, maximizing_player, stats=None):
         m_cnt = 0
         max_val = -inf
         best_move = None
+        best_variation = list()
         moves = get_possible_moves(state, AGENT_PLAYER)
         
         for move in moves:
@@ -124,25 +125,28 @@ def alpha_beta(state, depth, alpha, beta, maximizing_player, stats=None):
             m_cnt += 1
             
             new_state = apply_move(state, move, AGENT_PLAYER)
-            new_value, new_move = alpha_beta(new_state, depth-1, alpha, beta, not maximizing_player, stats)
+            new_value, new_variation = alpha_beta(new_state, depth-1, alpha, beta, not maximizing_player, stats)
             
             if new_value > max_val:
-                max_val, best_move = new_value, new_move
+                max_val, best_variation, best_move = new_value, new_variation, move
                 alpha = max(alpha, max_val)
             
             if max_val >= beta:
                 stats["pruned_branches"] = stats.get("pruned_branches", 0) + len(moves) - m_cnt
                 stats["principal_variation"] = best_move
-                return max_val, best_move
+                best_variation.append(best_move)
+                
+                return max_val, best_variation
         
-        stats["principal_variation"] = best_move
-        return max_val, best_move
+        best_variation.append(best_move)
+        return max_val, best_variation
     
     ### minimizing player:
     else:
         m_cnt = 0
         min_val = inf
         best_move = None
+        best_variation = list()
         moves = get_possible_moves(state, AGENT_MONSTER)
 
         for move in moves:
@@ -150,19 +154,21 @@ def alpha_beta(state, depth, alpha, beta, maximizing_player, stats=None):
             m_cnt += 1
             
             new_state = apply_move(state, move, AGENT_MONSTER)
-            new_value, new_move = alpha_beta(new_state, depth-1, alpha, beta, not maximizing_player, stats)
+            new_value, new_variation = alpha_beta(new_state, depth-1, alpha, beta, not maximizing_player, stats)
 
             if new_value < min_val:
-                min_val, best_move = new_value, new_move
+                min_val, best_variation, best_move = new_value, new_variation, move
                 beta = min(beta, min_val)
             
             if min_val <= alpha:
                 stats["pruned_branches"] = stats.get("pruned_branches", 0) + len(moves) - m_cnt
                 stats["principal_variation"] = best_move
-                return min_val, best_move
+                best_variation.append(best_move)
+                
+                return min_val, best_variation
         
-        stats["principal_variation"] = best_move
-        return min_val, best_move
+        best_variation.append(best_move)
+        return min_val, best_variation
 
 
 def choose_player_move(state, depth, use_alpha_beta=True):
