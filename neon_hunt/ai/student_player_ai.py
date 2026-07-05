@@ -45,10 +45,11 @@ def evaluate(state):
 
     d_exit = bfs_distance(state, state.player, state.exit)
     d_monster = bfs_distance(state, state.player, state.monster)
+    d_monster_exit = bfs_distance(state, state.monster, state.exit)
     routes = escape_routes(state, state.player)
 
     # TODO: improve this heuristic.
-    return float(-6.0 * d_exit + 4.0 * d_monster + 2.0 * routes)
+    return float(-4.0 * d_exit + 6.0 * d_monster + 9.0 * d_monster_exit + 3.0 * routes)
 
 
 def minimax(state, depth: int, maximizing_player: bool, stats=None):
@@ -107,7 +108,7 @@ def alpha_beta(state, depth, alpha, beta, maximizing_player, stats=None):
     
     ### base case
     if (is_terminal(state) or depth == 0):
-        return evaluate(state)
+        return evaluate(state), list()
     
     if stats is None:
         stats = {}
