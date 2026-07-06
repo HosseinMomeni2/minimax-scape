@@ -52,7 +52,6 @@ def evaluate(state):
     mul_monster = 6.0
     mul_monster_exit = 9.0
     mul_routes = 3.0
-    
 
     # TODO: improve this heuristic.
     return float(mul_exit * d_exit +
@@ -244,8 +243,6 @@ def choose_player_move(state, depth, use_alpha_beta=True):
     otp["best_move"] = best_move
     otp["states_explored"] = best_stats.get("states_explored", 0)
     otp["pruned_branches"] = best_stats.get("pruned_branches", 0)
-    otp["principal_variation"] = principal_variation[::-1] #reverse
-
-    print(otp["scores"], otp["best_move"])
+    otp["principal_variation"] = principal_variation[::-1] # reverse
 
     return otp
