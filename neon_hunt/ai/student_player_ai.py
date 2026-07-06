@@ -39,17 +39,26 @@ def evaluate(state):
     """
     result = is_terminal(state)
     if result == "PLAYER_WIN":
-        return float("inf")
+        return 100000.0
     if result == "MONSTER_WIN":
-        return -float("inf")
+        return -100000.0
 
     d_exit = bfs_distance(state, state.player, state.exit)
     d_monster = bfs_distance(state, state.player, state.monster)
     d_monster_exit = bfs_distance(state, state.monster, state.exit)
     routes = escape_routes(state, state.player)
 
+    mul_exit = -11.0
+    mul_monster = 6.0
+    mul_monster_exit = 9.0
+    mul_routes = 3.0
+    
+
     # TODO: improve this heuristic.
-    return float(-4.0 * d_exit + 6.0 * d_monster + 9.0 * d_monster_exit + 3.0 * routes)
+    return float(mul_exit * d_exit +
+                 mul_monster * d_monster +
+                 mul_monster_exit * d_monster_exit +
+                 mul_routes * routes)
 
 
 def minimax(state, depth: int, maximizing_player: bool, stats=None):
@@ -58,7 +67,7 @@ def minimax(state, depth: int, maximizing_player: bool, stats=None):
 
     ### base case
     if (is_terminal(state) != "ONGOING" or depth == 0):
-        return evaluate(state), list()
+        return 0.99 * evaluate(state), list()
     
     if stats is None:
         stats = {}
@@ -84,7 +93,7 @@ def minimax(state, depth: int, maximizing_player: bool, stats=None):
                 best_variation = new_variation.copy()
         
         best_variation.append(best_move)
-        return max_val, best_variation
+        return 0.99 * max_val, best_variation
     
     ### minimizing player:
     else:
@@ -107,7 +116,7 @@ def minimax(state, depth: int, maximizing_player: bool, stats=None):
                 best_variation = new_variation.copy()
         
         best_variation.append(best_move)
-        return min_val, best_variation
+        return 0.99 * min_val, best_variation
 
 
 def alpha_beta(state, depth, alpha, beta, maximizing_player, stats=None):
@@ -116,7 +125,7 @@ def alpha_beta(state, depth, alpha, beta, maximizing_player, stats=None):
     
     ### base case
     if (is_terminal(state) != "ONGOING" or depth == 0):
-        return evaluate(state), list()
+        return 0.99 * evaluate(state), list()
     
     if stats is None:
         stats = {}
@@ -148,7 +157,7 @@ def alpha_beta(state, depth, alpha, beta, maximizing_player, stats=None):
                 stats["pruned_branches"] = stats.get("pruned_branches", 0) + len(moves) - m_cnt
                 best_variation.append(best_move)
                 
-                return max_val, best_variation
+                return 0.99 * max_val, best_variation
         
         best_variation.append(best_move)
         return max_val, best_variation
@@ -183,7 +192,7 @@ def alpha_beta(state, depth, alpha, beta, maximizing_player, stats=None):
                 return min_val, best_variation
         
         best_variation.append(best_move)
-        return min_val, best_variation
+        return 0.99 * min_val, best_variation
 
 
 def choose_player_move(state, depth, use_alpha_beta=True):
@@ -235,6 +244,8 @@ def choose_player_move(state, depth, use_alpha_beta=True):
     otp["best_move"] = best_move
     otp["states_explored"] = best_stats.get("states_explored", 0)
     otp["pruned_branches"] = best_stats.get("pruned_branches", 0)
-    otp["principal_variation"] = principal_variation[::-1]
+    otp["principal_variation"] = principal_variation[::-1] #reverse
+
+    print(otp["scores"], otp["best_move"])
 
     return otp
