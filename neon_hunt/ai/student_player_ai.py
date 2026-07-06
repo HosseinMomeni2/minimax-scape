@@ -46,7 +46,6 @@ def evaluate(state):
     d_exit = bfs_distance(state, state.player, state.exit)
     d_monster = bfs_distance(state, state.player, state.monster)
     d_monster_exit = bfs_distance(state, state.monster, state.exit)
-    d_monster_exit = 0.0
     routes = escape_routes(state, state.player)
 
     # TODO: improve this heuristic.
@@ -58,13 +57,7 @@ def minimax(state, depth: int, maximizing_player: bool, stats=None):
     # TODO: implement minimax.
 
     ### base case
-    if(is_terminal(state)=="PLAYER_WIN"):
-        # print("win happened!")
-        return 100001.0, list()
-    elif(is_terminal(state)=="MONSTER_WIN"):
-        # print("lose happened!")
-        return -100000.0, list()
-    elif (is_terminal(state)!="ONGOING" or depth == 0):
+    if (is_terminal(state) != "ONGOING" or depth == 0):
         return evaluate(state), list()
     
     if stats is None:
@@ -76,6 +69,9 @@ def minimax(state, depth: int, maximizing_player: bool, stats=None):
         best_move = None
         best_variation = list()
         moves = get_possible_moves(state, AGENT_PLAYER)
+
+        if not moves:
+            return evaluate(state), list()
         
         for move in moves:
             stats["states_explored"] = stats.get("states_explored", 0) + 1
@@ -92,10 +88,13 @@ def minimax(state, depth: int, maximizing_player: bool, stats=None):
     
     ### minimizing player:
     else:
-        min_val = 1000000.0
+        min_val = inf
         best_move = None
         best_variation = list()
         moves = get_possible_moves(state, AGENT_MONSTER)
+
+        if not moves:
+            return evaluate(state), list()
         
         for move in moves:
             stats["states_explored"] = stats.get("states_explored", 0) + 1
@@ -103,13 +102,9 @@ def minimax(state, depth: int, maximizing_player: bool, stats=None):
             new_state = apply_move(state, move, AGENT_MONSTER)
             new_value, new_variation = minimax(new_state, depth-1, not maximizing_player, stats)
 
-            if new_value < -1000.0:
-                print(f"i went {move} and cuaght the hacker with {new_value}!")
-
             if new_value < min_val:
                 min_val, best_move = new_value, move
                 best_variation = new_variation.copy()
-
         
         best_variation.append(best_move)
         return min_val, best_variation
@@ -120,7 +115,7 @@ def alpha_beta(state, depth, alpha, beta, maximizing_player, stats=None):
     # TODO: implement alpha-beta pruning.
     
     ### base case
-    if (is_terminal(state)!="ONGOING" or depth == 0):
+    if (is_terminal(state) != "ONGOING" or depth == 0):
         return evaluate(state), list()
     
     if stats is None:
@@ -133,6 +128,9 @@ def alpha_beta(state, depth, alpha, beta, maximizing_player, stats=None):
         best_move = None
         best_variation = list()
         moves = get_possible_moves(state, AGENT_PLAYER)
+
+        if not moves:
+            return evaluate(state), list()
         
         for move in moves:
             stats["states_explored"] = stats.get("states_explored", 0) + 1
@@ -142,12 +140,12 @@ def alpha_beta(state, depth, alpha, beta, maximizing_player, stats=None):
             new_value, new_variation = alpha_beta(new_state, depth-1, alpha, beta, not maximizing_player, stats)
             
             if new_value > max_val:
-                max_val, best_variation, best_move = new_value, new_variation, move
+                max_val, best_move = new_value, move
+                best_variation = new_variation.copy()
                 alpha = max(alpha, max_val)
             
             if max_val >= beta:
                 stats["pruned_branches"] = stats.get("pruned_branches", 0) + len(moves) - m_cnt
-                stats["principal_variation"] = best_move
                 best_variation.append(best_move)
                 
                 return max_val, best_variation
@@ -163,6 +161,9 @@ def alpha_beta(state, depth, alpha, beta, maximizing_player, stats=None):
         best_variation = list()
         moves = get_possible_moves(state, AGENT_MONSTER)
 
+        if not moves:
+            return evaluate(state), list()
+
         for move in moves:
             stats["states_explored"] = stats.get("states_explored", 0) + 1
             m_cnt += 1
@@ -171,12 +172,12 @@ def alpha_beta(state, depth, alpha, beta, maximizing_player, stats=None):
             new_value, new_variation = alpha_beta(new_state, depth-1, alpha, beta, not maximizing_player, stats)
 
             if new_value < min_val:
-                min_val, best_variation, best_move = new_value, new_variation, move
+                min_val, best_move = new_value, move
+                best_variation = new_variation.copy()
                 beta = min(beta, min_val)
             
             if min_val <= alpha:
                 stats["pruned_branches"] = stats.get("pruned_branches", 0) + len(moves) - m_cnt
-                stats["principal_variation"] = best_move
                 best_variation.append(best_move)
                 
                 return min_val, best_variation
@@ -219,14 +220,14 @@ def choose_player_move(state, depth, use_alpha_beta=True):
         new_stats = {}
 
         if use_alpha_beta:
-            new_val, new_variation = alpha_beta(new_state, depth, -inf, inf, True, new_stats)
+            new_val, new_variation = alpha_beta(new_state, depth, -inf, inf, False, new_stats)
         else:
-            new_val, new_variation = minimax(new_state, depth, True, new_stats)
+            new_val, new_variation = minimax(new_state, depth, False, new_stats)
 
         if new_val > best_val:
             best_val = new_val
             best_move = move
-            best_stats = new_stats
+            best_stats = new_stats.copy()
             principal_variation = new_variation.copy()
         
         otp["scores"][move] = new_val
@@ -235,7 +236,5 @@ def choose_player_move(state, depth, use_alpha_beta=True):
     otp["states_explored"] = best_stats.get("states_explored", 0)
     otp["pruned_branches"] = best_stats.get("pruned_branches", 0)
     otp["principal_variation"] = principal_variation[::-1]
-    print(otp["principal_variation"], best_move)
-    print(otp["scores"])
 
     return otp
