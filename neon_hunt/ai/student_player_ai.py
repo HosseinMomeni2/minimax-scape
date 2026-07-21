@@ -1,23 +1,3 @@
-"""Student AI Template — Neon Hunt
-
-IMPORTANT: Replace STUDENT_ID with your own 10-digit numeric student code.
-
-Only these four functions are TODO for students:
-1. evaluate
-2. minimax
-3. alpha_beta
-4. choose_player_move
-
-The game-rule helpers are already provided:
-- get_possible_moves
-- apply_move
-- is_terminal
-"""
-# TODO: write your own 10-digit numeric student code here.
-# Example: STUDENT_ID = "4021234567"
-STUDENT_ID = "4023613071"
-STUDENT_ID = "4023613074"
-
 from math import inf
 
 from neon_hunt.config import AGENT_PLAYER, AGENT_MONSTER
@@ -53,7 +33,6 @@ def evaluate(state):
     mul_monster_exit = 9.0
     mul_routes = 3.0
 
-    # TODO: improve this heuristic.
     return float(mul_exit * d_exit +
                  mul_monster * d_monster +
                  mul_monster_exit * d_monster_exit +
@@ -62,7 +41,6 @@ def evaluate(state):
 
 def minimax(state, depth: int, maximizing_player: bool, stats=None):
     """Depth-limited Minimax from the Player's perspective."""
-    # TODO: implement minimax.
 
     ### base case
     if (is_terminal(state) != "ONGOING" or depth == 0):
@@ -120,7 +98,6 @@ def minimax(state, depth: int, maximizing_player: bool, stats=None):
 
 def alpha_beta(state, depth, alpha, beta, maximizing_player, stats=None):
     """Minimax with alpha-beta pruning from the Player's perspective."""
-    # TODO: implement alpha-beta pruning.
     
     ### base case
     if (is_terminal(state) != "ONGOING" or depth == 0):
@@ -217,7 +194,6 @@ def choose_player_move(state, depth, use_alpha_beta=True):
     if not moves:
         return otp
 
-    # TODO: call alpha_beta or minimax for each candidate move and return best.
     best_val = -inf
     best_move = None
     best_stats = {}
