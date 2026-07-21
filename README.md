@@ -1,43 +1,34 @@
-[![Review Assignment Due Date](https://classroom.github.com/assets/deadline-readme-button-22041afd0340ce965d47ae6ef1cefeee28c7c493a6346c4f15d667ab976d596c.svg)](https://classroom.github.com/a/TwWpR3sR)
 # Neon Hunt
 
+## Game Reules
 Neon Hunt is a grid-based escape AI project for Track B. The player controls the Hacker, who must reach the exit or survive while the Cyber Beast tries to catch them.
 
 ## Run
+Simply run the main.py file with python interpreter:
 
 ```bash
 python main.py
 ```
 
-On Windows, you can also run:
+OR  
+
+On Windows:
 
 ```bash
 run_windows.bat
 ```
 
-## Student Task
-
-Complete the AI in:
-
-```text
-neon_hunt/ai/student_player_ai.py
+On Linux:
+```bash
+./run_linux.sh
 ```
 
-Implement these functions:
+## AI
+Whole point of this project was to implement an AI algorithm to play it. The AI is implemented in `student_player_ai.py`. There are two main algorithms implemented to solve this problem:
 
-- `evaluate(state)`
-- `minimax(state, depth, maximizing_player, stats=None)`
-- `alpha_beta(state, depth, alpha, beta, maximizing_player, stats=None)`
-- `choose_player_move(state, depth, use_alpha_beta=True)`
+### Minimax
+This algorithm uses a recursive approach to find the best move. The minimax function is being called once for the maximizing player (the hacker) and for the minimizing player (the monster) after that.  
+It uses an evaluation function as the base case to avoid searching deep nodes and preventing the execution time to explode.
 
-Also set your 10-digit student ID:
-
-```python
-STUDENT_ID = "1234567890"
-```
-
-The full Persian assignment guide is available at:
-
-```text
-docs/Neon_Hunt_Student_Guide.pdf
-```
+### Alpha-Beta Prouning
+This algorithm works same as minimax but it prunes some nodes based on the current found evaluation bound of the current node.
